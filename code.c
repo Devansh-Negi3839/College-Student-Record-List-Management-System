@@ -1,3 +1,5 @@
+// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Importing Libraries  *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+
 #include "stdio.h"
 #include "stdlib.h"
 #include <string.h>
@@ -23,6 +25,8 @@ typedef enum
     THIRD,
     FOURTH
 } YEAR;
+
+//  *-*-*-**-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*   Structure Definitions    *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
 typedef struct Details_tag
 {
@@ -73,12 +77,14 @@ typedef struct node_tag
 
 } Tree_Node;
 
+// Maximum classes conducted
 int MCC[4][5] =
     {
         {-1, -1, -1, -1, -1},
         {-1, -1, -1, -1, -1},
         {-1, -1, -1, -1, -1},
         {-1, -1, -1, -1, -1}};
+// Maximum classes attended
 int MCA[4][5] =
     {
         {-1, -1, -1, -1, -1},
@@ -86,9 +92,7 @@ int MCA[4][5] =
         {-1, -1, -1, -1, -1},
         {-1, -1, -1, -1, -1}};
 
-//
-
-//
+// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Utility Functions  *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
 void filling_MCC(Item_Type data)
 {
@@ -97,7 +101,7 @@ void filling_MCC(Item_Type data)
     char c = data.dep[0];
     switch (c)
     {
-    case 'C': //CS or CV
+    case 'C': // CS or CV
         if (data.dep[1] == 'S')
             col = 0;
         else
@@ -116,79 +120,180 @@ void filling_MCC(Item_Type data)
         printf("\nERROR !!! DEPARTMENT NOT FOUND\n");
         break;
     }
-    if (col != -1 && MCC[row][col] == -1) // TABULATION
+    if (col != -1 && MCC[row][col] == -1) // MEMOIZATION
     {
         int maxclasses_conducted = data.classesConducted[0];
 
-        for (int i = 1; i < 5; i++) //no of subjects
+        for (int i = 1; i < 5; i++) // no of subjects
         {
             if (maxclasses_conducted < data.classesConducted[i])
-            {
                 maxclasses_conducted = data.classesConducted[i];
-            }
         }
         MCC[row][col] = maxclasses_conducted;
     }
-    //filling MCA for MCC[row][col]
-    for (int i = 1; i < 5; i++) //no of subjects
+    // filling MCA for MCC[row][col]
+    for (int i = 1; i < 5; i++) // no of subjects
     {
         if (MCC[row][col] == data.classesConducted[i])
         {
             if (MCA[row][col] < data.classesAttended[i])
-            {
-                // printf("HELLO");
                 MCA[row][col] = data.classesAttended[i];
-            }
         }
     }
 }
 
-//
-
-//
-
 /*To Compare 2 nodes on the basis of year=>department=>roll no
-    -1 for 1st node greater, 1 for 2nd node greater*/
+    -1 for 1st node greater, 1 for 2nd node greater, 0 for equal*/
 int comparator(Details d1, Details d2)
 {
-    int ret_val;
-    //SORT FROM YEAR 4 TO YEAR 1
+    int ret_val = 0;
+    // SORT FROM YEAR 4 TO YEAR 1
     if (d1.year < d2.year)
-    {
         ret_val = -1;
-    }
     else if (d1.year > d2.year)
-    {
         ret_val = 1;
-    }
     else // YEAR IS SAME
     {
         if (strcmp(d1.dep, d2.dep) < 0)
-        {
             ret_val = 1;
-        }
         else if (strcmp(d1.dep, d2.dep) > 0)
-        {
             ret_val = -1;
-        }
-        else //Department is same
+        else // Department is same
         {
             if (strcmp(d1.rollno, d2.rollno) < 0)
-            {
                 ret_val = 1;
-            }
-            else
-            {
+            else if (strcmp(d1.rollno, d2.rollno) > 0)
                 ret_val = -1;
-            }
         }
     }
     return ret_val;
 }
 
-//
+// A utility function to get maximum of two integers
+int max(int a, int b)
+{
+    return (a > b) ? a : b;
+}
 
-//Insertion and deletion in AVL Tree
+// A function to print fee status of all Students
+void printFeeStatus(Tree_Node *root)
+{
+    if (root)
+    {
+        printFeeStatus(root->left);
+        printf("\nFee Status is %d for %s ", root->ptr_To_Fee_Status_List_Node->fee, root->ptr_To_Fee_Status_List_Node->roll);
+        printFeeStatus(root->right);
+    }
+}
+
+// A function to print Attendance % of all Students
+void printAttendance(Tree_Node *root)
+{
+    if (root)
+    {
+        printAttendance(root->left);
+        printf("\n%20s\t%s\t%f", root->data.name, root->ptr_To_Attendance_List_Node->rollno, root->ptr_To_Attendance_List_Node->attendance_Percent);
+        printAttendance(root->right);
+    }
+}
+
+// A function to connect all the nodes(to their corresponding nodes in other Lists) of the tree. For eg.GSRL to FSL,ASLand ASRL
+void connector(Tree_Node *root)
+{
+    if (root)
+    {
+        connector(root->right);
+        connector(root->left);
+        if (root->left == NULL && root->right == NULL)
+        {
+            root->ptr_To_Fee_Status_List_Node->left = root->ptr_To_Fee_Status_List_Node->right = NULL;
+            root->ptr_To_Applicant_Status_List_Node->left = root->ptr_To_Applicant_Status_List_Node->right = NULL;
+            root->ptr_To_Attendance_List_Node->left = root->ptr_To_Attendance_List_Node->right = NULL;
+        }
+        else if (root->left != NULL && root->right == NULL)
+        {
+            root->ptr_To_Fee_Status_List_Node->left = root->left->ptr_To_Fee_Status_List_Node;
+            root->ptr_To_Applicant_Status_List_Node->left = root->left->ptr_To_Applicant_Status_List_Node;
+            root->ptr_To_Attendance_List_Node->left = root->left->ptr_To_Attendance_List_Node;
+            //
+            root->ptr_To_Fee_Status_List_Node->right = NULL;
+            root->ptr_To_Applicant_Status_List_Node->right = NULL;
+            root->ptr_To_Attendance_List_Node->right = NULL;
+        }
+        else if (root->left == NULL && root->right != NULL)
+        {
+            root->ptr_To_Fee_Status_List_Node->left = NULL;
+            root->ptr_To_Applicant_Status_List_Node->left = NULL;
+            root->ptr_To_Attendance_List_Node->left = NULL;
+            //
+            root->ptr_To_Fee_Status_List_Node->right = root->right->ptr_To_Fee_Status_List_Node;
+            root->ptr_To_Applicant_Status_List_Node->right = root->right->ptr_To_Applicant_Status_List_Node;
+            root->ptr_To_Attendance_List_Node->right = root->right->ptr_To_Attendance_List_Node;
+        }
+        else
+        {
+            root->ptr_To_Fee_Status_List_Node->left = root->left->ptr_To_Fee_Status_List_Node;
+            root->ptr_To_Applicant_Status_List_Node->left = root->left->ptr_To_Applicant_Status_List_Node;
+            root->ptr_To_Attendance_List_Node->left = root->left->ptr_To_Attendance_List_Node;
+            //
+            root->ptr_To_Fee_Status_List_Node->right = root->right->ptr_To_Fee_Status_List_Node;
+            root->ptr_To_Applicant_Status_List_Node->right = root->right->ptr_To_Applicant_Status_List_Node;
+            root->ptr_To_Attendance_List_Node->right = root->right->ptr_To_Attendance_List_Node;
+        }
+    }
+}
+
+// A function to fill attendance % of all Students
+void fillAttendance(Tree_Node *root)
+{
+    if (root)
+    {
+        float att_percent = -1;
+
+        int row = root->data.year;
+        int col = -1;
+        char c = root->data.dep[0];
+        switch (c)
+        {
+        case 'C': // CS or CV
+            if (root->data.dep[1] == 'S')
+                col = 0;
+            else
+                col = 1;
+            break;
+        case 'E':
+            if (root->data.dep[1] == 'C')
+                col = 2;
+            else
+                col = 3;
+            break;
+        case 'M':
+            col = 4;
+            break;
+        default:
+            printf("\nWrong character is %c", c);
+            printf("\nERROR !!! DEPARTMENT NOT FOUND\n");
+            break;
+        }
+        for (int i = 0; i < SUBJECT_SIZE; i++)
+        {
+            if (MCC[row][col] == root->data.classesConducted[i])
+            {
+                float att_For_Current_Subject = (root->data.classesAttended[i] * 1.0) / (MCA[row][col]) * 100.0;
+
+                if (att_percent < att_For_Current_Subject && att_percent <= 100)
+                    att_percent = att_For_Current_Subject;
+            }
+        }
+        root->ptr_To_Attendance_List_Node->attendance_Percent = att_percent;
+        fillAttendance(root->left);
+        fillAttendance(root->right);
+    }
+}
+
+// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-  AVL Tree Functions    *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-
+
+// To create a new node in AVL tree
 Tree_Node *NewNode(Details data)
 {
     Tree_Node *temp = (Tree_Node *)malloc(sizeof(Tree_Node));
@@ -213,11 +318,7 @@ Tree_Node *NewNode(Details data)
     return temp;
 }
 
-int max(int a, int b)
-{
-    return (a > b) ? a : b;
-}
-
+// A function to get the height of the tree
 int height(Tree_Node *node)
 {
     if (node == NULL)
@@ -225,6 +326,7 @@ int height(Tree_Node *node)
     return node->height;
 }
 
+// A function to get balance factor of node N
 int Balance(Tree_Node *node)
 {
     if (node == NULL)
@@ -232,6 +334,7 @@ int Balance(Tree_Node *node)
     return height(node->left) - height(node->right);
 }
 
+// A function to left rotate subtree rooted with z
 Tree_Node *LeftRotate(Tree_Node *z)
 {
     Tree_Node *y = z->right;
@@ -246,6 +349,7 @@ Tree_Node *LeftRotate(Tree_Node *z)
     return y;
 }
 
+// A function to right rotate subtree rooted with z
 Tree_Node *RightRotate(Tree_Node *z)
 {
     Tree_Node *y = z->left;
@@ -260,146 +364,145 @@ Tree_Node *RightRotate(Tree_Node *z)
     return y;
 }
 
+// A function to print preorder traversal of the tree.
 void preorder(Tree_Node *root)
 {
     if (root == NULL)
         return;
-
     printf("\n%20s %s", root->data.name, root->data.rollno);
     preorder(root->left);
     preorder(root->right);
 }
 
+// A function to return the node with minimum value in the tree.
 Tree_Node *FindMin(Tree_Node *node)
 {
-    while (node->left != NULL)
+    while (node && node->left != NULL)
         node = node->left;
-
     return node;
 }
 
+// A function to delete a node with given data from AVL tree.
 Tree_Node *Delete(Tree_Node *root, Item_Type data)
 {
+    // Base case: If the tree is empty, return NULL
     if (root == NULL)
         return root;
-
-    // if (data < root->data)
-    if (comparator(data, root->data) == 1)
+    // Recursive deletion based on comparison with root data
+    if (comparator(data, root->data) == 1) // data < root->data
         root->left = Delete(root->left, data);
-    // else if (data > root->data)
-    else if (comparator(data, root->data) == -1)
+    else if (comparator(data, root->data) == -1) // data > root->data
         root->right = Delete(root->right, data);
-
     else
     {
+        // Case 1: Node to be deleted has no children (leaf node)
         if (root->right == NULL && root->left == NULL)
         {
             free(root);
             root = NULL;
         }
-
+        // Case 2: Node to be deleted has only left child
         else if (root->left != NULL && root->right == NULL)
         {
-            Tree_Node *temp = root->left;
+            Tree_Node *temp = root;
             root = root->left;
             free(temp);
         }
-
+        // Case 3: Node to be deleted has only right child
         else if (root->right != NULL && root->left == NULL)
         {
-            Tree_Node *temp = root->right;
+            Tree_Node *temp = root;
             root = root->right;
             free(temp);
         }
-
+        // Case 4: Node to be deleted has both left and right children
         else
         {
-            Tree_Node *temp = FindMin(root->right);
-            root->data = temp->data;
-            root->right = Delete(root->right, temp->data);
+            Tree_Node *temp = FindMin(root->right);        // Find minimum node in right subtree
+            root->data = temp->data;                       // Replace root's data with minimum node's data
+            root->right = Delete(root->right, temp->data); // Delete the minimum node from right subtree
         }
     }
+
+    // If root is NULL after deletion, return NULL
     if (root == NULL)
         return root;
 
+    // Update height of current node
     root->height = 1 + max(height(root->left), height(root->right));
 
+    // Rebalance the AVL tree after deletion
+
     int balance = Balance(root);
 
-    //Left Left Case
+    // Left Left Case: Perform a right rotation
     if (balance > 1 && Balance(root->left) >= 0)
         return RightRotate(root);
-
-    // Right Right Case
-    if (balance < -1 && Balance(root->right) <= 0)
+    // Right Right Case: Perform a left rotation
+    else if (balance < -1 && Balance(root->right) <= 0)
         return LeftRotate(root);
-
-    // Left Right Case
-    if (balance > 1 && Balance(root->left) < 0)
+    // Left Right Case: Perform left then right rotation
+    else if (balance > 1 && Balance(root->left) < 0)
     {
         root->left = LeftRotate(root->left);
         return RightRotate(root);
     }
-
-    //Right Left Case
-    if (balance < -1 && Balance(root->right) > 0)
+    // Right Left Case: Perform right then left rotation
+    else if (balance < -1 && Balance(root->right) > 0)
     {
         root->right = RightRotate(root->right);
         return LeftRotate(root);
     }
-    return root;
-}
-
-Tree_Node *Insert(Tree_Node *root, Item_Type data)
-{
-    if (root == NULL)
-        return NewNode(data);
-
-    // else if (data < root->data)
-    else if (comparator(data, root->data) == 1)
-        root->left = Insert(root->left, data);
-
-    // else if (data > root->data)
-    else if (comparator(data, root->data) == -1)
-        root->right = Insert(root->right, data);
-
+    // If no rotation is needed, return the unchanged node
     else
         return root;
+}
 
+// A function to insert a new node with given data in AVL tree.
+Tree_Node *Insert(Tree_Node *root, Item_Type data)
+{
+    // Base case: If the tree is empty, return a new node
+    if (root == NULL)
+        return NewNode(data);
+    // Recursive insertion based on comparison with root data
+    if (comparator(data, root->data) == 1) // data < root->data
+        root->left = Insert(root->left, data);
+    else if (comparator(data, root->data) == -1) // data > root->data
+        root->right = Insert(root->right, data);
+    else // data already exists in the tree
+        return root;
+
+    // Update the height of the current node
     root->height = max(height(root->left), height(root->right)) + 1;
+
+    // Check and balance the AVL tree after insertion
 
     int balance = Balance(root);
 
-    // Left Left Case
-    // if (balance > 1 && data < root->left->data)
-    if (balance > 1 && comparator(data, root->left->data) == 1)
+    // Left Left Case: Perform a right rotation
+    if (balance > 1 && comparator(data, root->left->data) == 1) // data < root->left->data
         return RightRotate(root);
-
-    // Right Right Case
-    // if (balance < -1 && data > root->right->data)
-    if (balance < -1 && comparator(data, root->right->data) == -1)
+    // Right Right Case: Perform a left rotation
+    else if (balance < -1 && comparator(data, root->right->data) == -1) // data > root->right->data
         return LeftRotate(root);
-
-    //Left Right Case
-    // if (balance > 1 && data > root->left->data)
-    if (balance > 1 && comparator(data, root->left->data) == -1)
+    // Left Right Case: Perform left then right rotation
+    else if (balance > 1 && comparator(data, root->left->data) == -1) // data > root->left->data
     {
         root->left = LeftRotate(root->left);
         return RightRotate(root);
     }
-
-    // Right Left Case
-    // if (balance < -1 && data < root->right->data)
-    if (balance < -1 && comparator(data, root->right->data) == 1)
+    // Right Left Case: Perform right then left rotation
+    else if (balance < -1 && comparator(data, root->right->data) == 1) // data < root->right->data
     {
         root->right = RightRotate(root->right);
         return LeftRotate(root);
     }
-
-    return root;
+    // If no rotation is needed, return the unchanged node
+    else
+        return root;
 }
 
-// inorder traversal of the tree
+// inorder traversal of the AVL tree
 void inorder(Tree_Node *root1)
 {
     if (root1)
@@ -410,19 +513,26 @@ void inorder(Tree_Node *root1)
     }
 }
 
-//
+// To delete the AVL tree
+void DeleteAVLTree(Tree_Node *root)
+{
+    if (root)
+    {
+        DeleteAVLTree(root->left);
+        DeleteAVLTree(root->right);
+        root = Delete(root, root->data);
+    }
+}
+
+//  *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-  Reading Data Via File  -*-*-*-**-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
 void readStudent(Item_Type *s, FILE *fp)
 {
     fscanf(fp, "%s %s %d %s", s->name, s->dep, &s->year, s->rollno);
     for (int i = 0; i < 5; i++)
-    {
         fscanf(fp, "%d", &s->classesConducted[i]);
-    }
     for (int i = 0; i < 5; i++)
-    {
         fscanf(fp, "%d", &s->classesAttended[i]);
-    }
     fscanf(fp, "%d %d", &s->fee, &s->app);
 }
 Tree_Node *inputFromFile(char *filename, Details student, Tree_Node *head)
@@ -453,357 +563,172 @@ Tree_Node *takeInput()
     return head;
 }
 
-//
+//  *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* Functions Declarations for Student Record List  *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
-//
-
-void printFeeStatus(Tree_Node *root)
-{
-    if (root)
-    {
-        printFeeStatus(root->left);
-        printf("\nFee Status is %d for %s ", root->ptr_To_Fee_Status_List_Node->fee, root->ptr_To_Fee_Status_List_Node->roll);
-        printFeeStatus(root->right);
-    }
-}
-
-void printAttendance(Tree_Node *root)
-{
-    if (root)
-    {
-        printAttendance(root->left);
-        printf("\n%20s\t%s\t%f", root->data.name, root->ptr_To_Attendance_List_Node->rollno, root->ptr_To_Attendance_List_Node->attendance_Percent);
-        printAttendance(root->right);
-    }
-}
-
-void connector(Tree_Node *root)
-{
-    if (root)
-    {
-        connector(root->right);
-        connector(root->left);
-        if (root->left == NULL && root->right == NULL)
-        {
-            root->ptr_To_Fee_Status_List_Node->left = root->ptr_To_Fee_Status_List_Node->right = NULL;
-
-            root->ptr_To_Applicant_Status_List_Node->left = root->ptr_To_Applicant_Status_List_Node->right = NULL;
-
-            root->ptr_To_Attendance_List_Node->left = root->ptr_To_Attendance_List_Node->right = NULL;
-        }
-        else if (root->left != NULL && root->right == NULL)
-        {
-            root->ptr_To_Fee_Status_List_Node->left = root->left->ptr_To_Fee_Status_List_Node;
-
-            root->ptr_To_Applicant_Status_List_Node->left = root->left->ptr_To_Applicant_Status_List_Node;
-
-            root->ptr_To_Attendance_List_Node->left = root->left->ptr_To_Attendance_List_Node;
-
-            //
-
-            root->ptr_To_Fee_Status_List_Node->right = NULL;
-
-            root->ptr_To_Applicant_Status_List_Node->right = NULL;
-
-            root->ptr_To_Attendance_List_Node->right = NULL;
-        }
-        else if (root->left == NULL && root->right != NULL)
-        {
-            root->ptr_To_Fee_Status_List_Node->left = NULL;
-
-            root->ptr_To_Applicant_Status_List_Node->left = NULL;
-
-            root->ptr_To_Attendance_List_Node->left = NULL;
-
-            //
-
-            root->ptr_To_Fee_Status_List_Node->right = root->right->ptr_To_Fee_Status_List_Node;
-
-            root->ptr_To_Applicant_Status_List_Node->right = root->right->ptr_To_Applicant_Status_List_Node;
-
-            root->ptr_To_Attendance_List_Node->right = root->right->ptr_To_Attendance_List_Node;
-        }
-        else
-        {
-            root->ptr_To_Fee_Status_List_Node->left = root->left->ptr_To_Fee_Status_List_Node;
-
-            root->ptr_To_Applicant_Status_List_Node->left = root->left->ptr_To_Applicant_Status_List_Node;
-
-            root->ptr_To_Attendance_List_Node->left = root->left->ptr_To_Attendance_List_Node;
-
-            //
-
-            root->ptr_To_Fee_Status_List_Node->right = root->right->ptr_To_Fee_Status_List_Node;
-
-            root->ptr_To_Applicant_Status_List_Node->right = root->right->ptr_To_Applicant_Status_List_Node;
-
-            root->ptr_To_Attendance_List_Node->right = root->right->ptr_To_Attendance_List_Node;
-        }
-    }
-}
-
-void fillAttendance(Tree_Node *root)
-{
-    if (root)
-    {
-        float att_percent = -1;
-
-        int row = root->data.year;
-        int col = -1;
-        // char c = ptr->student_Data.dep[0];
-        char c = root->data.dep[0];
-        switch (c)
-        {
-        case 'C': //CS or CV
-            if (root->data.dep[1] == 'S')
-                col = 0;
-            else
-                col = 1;
-            break;
-        case 'E':
-            if (root->data.dep[1] == 'C')
-                col = 2;
-            else
-                col = 3;
-            break;
-        case 'M':
-            col = 4;
-            break;
-        default:
-            printf("\nWrong character is %c", c);
-            printf("\nERROR !!! DEPARTMENT NOT FOUND\n");
-            break;
-        }
-        for (int i = 0; i < SUBJECT_SIZE; i++)
-        {
-            // if (MCC[row][col] == ptr->student_Data.classesConducted[i])
-            if (MCC[row][col] == root->data.classesConducted[i])
-            {
-                // float att_For_Current_Subject = (ptr->student_Data.classesAttended[i] * 1.0) / (MCA[row][col]) * 100.0;
-                float att_For_Current_Subject = (root->data.classesAttended[i] * 1.0) / (MCA[row][col]) * 100.0;
-
-                if (att_percent < att_For_Current_Subject && att_percent <= 100)
-                {
-                    att_percent = att_For_Current_Subject;
-                }
-            }
-        }
-        root->ptr_To_Attendance_List_Node->attendance_Percent = att_percent;
-        fillAttendance(root->left);
-        fillAttendance(root->right);
-    }
-}
-//
-
-//
-
-void Question1(Tree_Node *root);
-void Question2(Tree_Node *root);
-void Question3(Tree_Node *root);
-void Question4(Tree_Node *root);
-Tree_Node *Question5(Tree_Node *root);
+void printGSRL(Tree_Node *root);
+void printAllNonApplicantStudents(Tree_Node *root);
+void printAllEligibleStudents(Tree_Node *root);
+void printAllLowAttendanceStudents(Tree_Node *root);
+Tree_Node *deleteStudentRecord(Tree_Node *root);
 void Question6(Tree_Node *root);
-void Question7(Tree_Node *root);
-void Question8(Tree_Node *root);
+void printAllDefaulterStudents(Tree_Node *root);
+void printAllStudentsWithinRange(Tree_Node *root);
 
-//
+// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Main *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
-void printApplicantList(ApplicantStatus_List_Node *root)
-{
-    if (root)
-    {
-        printApplicantList(root->left);
-        printf("\n%20s\t%s\tApply=%d", root->name, root->roll, root->apply);
-        printApplicantList(root->right);
-    }
-}
-//
-
-//
 int main()
 {
     Tree_Node *root_Of_Records = NULL;
     root_Of_Records = takeInput();
-
-    // printf("\nInorder");
-    // inorder(root_Of_Records);
-    // printf("\nBefore connecting\n");
     connector(root_Of_Records);
-    // printf("\nAfter connecting\n");
-    // printApplicantList(root_Of_Records->ptr_To_Applicant_Status_List_Node);
 
     printf("\nPrinting MCC\n");
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 5; j++)
-        {
             printf("\t %d", MCC[i][j]);
-        }
         printf("\n");
     }
     printf("\nPrinting MCA\n");
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 5; j++)
-        {
             printf("\t %d", MCA[i][j]);
-        }
         printf("\n");
     }
     fillAttendance(root_Of_Records);
 
     int choice = 0;
-
     while (choice != 9)
     {
-        printf("\n1:Q1\n2:Q2\n3:Q3\n4:Q4\n5:Delete\n6:Q6\n7:Q7\n8:Range search\n9:Exit\n");
+        printf("\n\n\n\n\n1:General Student Record Database(sorted).");
+        printf("\n2:List of Students who didn't apply for the Examination.");
+        printf("\n3:List of all Eligible Students for Examination.");
+        printf("\n4:List of Students having Attendance <=75%%.");
+        printf("\n5:Delete a Student Record from Database.");
+        printf("\n6:List of Students whose attendance is >75%% for the respective MCC(Maximum Classes Conducted) but their Fee Status is PENDING.");
+        printf("\n7:List of Defaulter Students.");
+        printf("\n8:Range-search students based on the roll number.");
+        printf("\n9:Exit\n");
         printf("\nEnter choice\n");
         scanf("%d", &choice);
         switch (choice)
         {
         case 1:
-            Question1(root_Of_Records);
-
+            printGSRL(root_Of_Records);
             break;
         case 2:
-            Question2(root_Of_Records);
-
+            printAllNonApplicantStudents(root_Of_Records);
             break;
         case 3:
-            Question3(root_Of_Records);
-
+            printAllEligibleStudents(root_Of_Records);
             break;
         case 4:
-            Question4(root_Of_Records);
-
+            printAllLowAttendanceStudents(root_Of_Records);
             break;
         case 5:
-            root_Of_Records = Question5(root_Of_Records);
-
+            root_Of_Records = deleteStudentRecord(root_Of_Records);
             break;
         case 6:
             Question6(root_Of_Records);
-
             break;
         case 7:
-            Question7(root_Of_Records);
-
+            printAllDefaulterStudents(root_Of_Records);
             break;
         case 8:
-            Question8(root_Of_Records);
-
+            printAllStudentsWithinRange(root_Of_Records);
             break;
         case 9:
-
             break;
-
         default:
             printf("\n No such choice, enter again\n");
             break;
         }
     }
-
-    // Question1(root_Of_Records);
-    // Question2(root_Of_Records);
-    // Question3(root_Of_Records);
-    // Question4(root_Of_Records);
-    // printf("\nPreorder");
-    // preorder(root_Of_Records);
-    // printf("\nInorder");
-    // inorder(root_Of_Records);
-    // root_Of_Records = Question5(root_Of_Records);
-    // connector(root_Of_Records);
-    // inorder(root_Of_Records);
-    // Question6(root_Of_Records);
-    // Question7(root_Of_Records);
-    // Question8(root_Of_Records);
-
+    DeleteAVLTree(root_Of_Records); // To delete the AVL tree
     return 0;
 }
 
-//Question 1
-void Question1util(Tree_Node *root)
+// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* Student Database Operations' Definitions   -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+
+void printGSRLutil(Tree_Node *root)
 {
     if (root)
     {
-        Question1util(root->left);
+        printGSRLutil(root->left);
         printf("\n%20s\t%s\t%d\t%s ", root->data.name, root->data.dep, root->data.year + 1, root->data.rollno);
-        Question1util(root->right);
+        printGSRLutil(root->right);
     }
 }
-void Question1(Tree_Node *root)
+void printGSRL(Tree_Node *root)
 {
-    printf("\nQuestion 1");
-    Question1util(root);
+    printGSRLutil(root);
 }
 
-void Question2util(Tree_Node *root)
+void printAllNonApplicantStudentsutil(Tree_Node *root)
 {
     if (root)
     {
-        Question2util(root->left);
+        printAllNonApplicantStudentsutil(root->left);
         if (root->ptr_To_Applicant_Status_List_Node->apply == NOTAPPLIED)
         {
             printf("\n%20s \t%s\tApplicant Status-> %d", root->ptr_To_Applicant_Status_List_Node->name, root->ptr_To_Applicant_Status_List_Node->roll, root->ptr_To_Applicant_Status_List_Node->apply);
         }
-        Question2util(root->right);
+        printAllNonApplicantStudentsutil(root->right);
     }
 }
-void Question2(Tree_Node *root)
+void printAllNonApplicantStudents(Tree_Node *root)
 {
-    printf("\nQuestion 2");
-    Question2util(root);
+    printf("\nQuestion 2\n Non-Applicants");
+    printAllNonApplicantStudentsutil(root);
 }
 
-void Question3util(Tree_Node *root)
+void printAllEligibleStudentsutil(Tree_Node *root)
 {
     if (root)
     {
-        Question3util(root->left);
+        printAllEligibleStudentsutil(root->left);
         if (root->ptr_To_Attendance_List_Node->attendance_Percent > 75 && root->ptr_To_Fee_Status_List_Node->fee == APPLIED && root->ptr_To_Applicant_Status_List_Node->apply == APPLIED)
         {
-            printf("\n%20s\t%s\t%f\tFee Status=>%d\tApplicant=%d", root->data.name, root->ptr_To_Attendance_List_Node->rollno,
+            printf("\n%20s\t%s\tAttendance=  %f\tFee Status=>%d\tApplicant=%d", root->data.name, root->ptr_To_Attendance_List_Node->rollno,
                    root->ptr_To_Attendance_List_Node->attendance_Percent, root->ptr_To_Fee_Status_List_Node->fee, root->ptr_To_Applicant_Status_List_Node->apply);
         }
-        Question3util(root->right);
+        printAllEligibleStudentsutil(root->right);
     }
 }
-void Question3(Tree_Node *root)
+void printAllEligibleStudents(Tree_Node *root)
 {
-    printf("\nQuestion 3");
-    Question3util(root);
+    printf("\nQuestion 3\nEligible Candidates");
+    printAllEligibleStudentsutil(root);
 }
 
-void Question4util(Tree_Node *root)
+void printAllLowAttendanceStudentsutil(Tree_Node *root)
 {
     if (root)
     {
-        Question4util(root->left);
+        printAllLowAttendanceStudentsutil(root->left);
         if (root->ptr_To_Attendance_List_Node->attendance_Percent <= 75)
         {
-            printf("\n%20s\t%s\t%f", root->data.name, root->ptr_To_Attendance_List_Node->rollno, root->ptr_To_Attendance_List_Node->attendance_Percent);
+            printf("\n%20s\t%s\tAttendance=  %f", root->data.name, root->ptr_To_Attendance_List_Node->rollno, root->ptr_To_Attendance_List_Node->attendance_Percent);
         }
-        Question4util(root->right);
+        printAllLowAttendanceStudentsutil(root->right);
     }
 }
-void Question4(Tree_Node *root)
+void printAllLowAttendanceStudents(Tree_Node *root)
 {
-    printf("\nQuestion 4");
-    Question4util(root);
+    printf("\nQuestion 4\n Low Attendance");
+    printAllLowAttendanceStudentsutil(root);
 }
 
-Tree_Node *Question5util(Tree_Node *root, char *key)
+Tree_Node *deleteStudentRecordutil(Tree_Node *root, char *key)
 {
     if (root == NULL)
         return root;
 
-    // if (data < root->data)
     if (strcmp(key, root->data.rollno) < 0)
-        root->left = Question5util(root->left, key);
-    // else if (data > root->data)
+        root->left = deleteStudentRecordutil(root->left, key);
     else if (strcmp(key, root->data.rollno) > 0)
-        root->right = Question5util(root->right, key);
-
+        root->right = deleteStudentRecordutil(root->right, key);
     else
     {
         if (root->right == NULL && root->left == NULL)
@@ -830,7 +755,7 @@ Tree_Node *Question5util(Tree_Node *root, char *key)
         {
             Tree_Node *temp = FindMin(root->right);
             root->data = temp->data;
-            root->right = Question5util(root->right, temp->data.rollno);
+            root->right = deleteStudentRecordutil(root->right, temp->data.rollno);
         }
     }
     if (root == NULL)
@@ -840,7 +765,7 @@ Tree_Node *Question5util(Tree_Node *root, char *key)
 
     int balance = Balance(root);
 
-    //Left Left Case
+    // Left Left Case
     if (balance > 1 && Balance(root->left) >= 0)
         return RightRotate(root);
 
@@ -855,7 +780,7 @@ Tree_Node *Question5util(Tree_Node *root, char *key)
         return RightRotate(root);
     }
 
-    //Right Left Case
+    // Right Left Case
     if (balance < -1 && Balance(root->right) > 0)
     {
         root->right = RightRotate(root->right);
@@ -863,19 +788,19 @@ Tree_Node *Question5util(Tree_Node *root, char *key)
     }
     return root;
 }
-Tree_Node *Question5(Tree_Node *root)
+Tree_Node *deleteStudentRecord(Tree_Node *root)
 {
     printf("\nQuestion 5");
 
-    char name_Question5[ROLL_SIZE];
+    char name_deleteStudentRecord[ROLL_SIZE];
     printf("\nEnter roll no for deletion\n");
-    scanf("%s", name_Question5);
+    scanf("%s", name_deleteStudentRecord);
 
     printf("\nBefore Deleting");
-    Question1(root);
-    root = Question5util(root, name_Question5);
+    printGSRL(root);
+    root = deleteStudentRecordutil(root, name_deleteStudentRecord);
     printf("\nAfter Deleting");
-    Question1(root);
+    printGSRL(root);
     connector(root);
     return root;
 }
@@ -904,7 +829,7 @@ int findDepIndex(char *dep)
     int c = dep[0], x = -1;
     switch (c)
     {
-    case 'C': //CS or CV
+    case 'C': // CS or CV
         if (dep[1] == 'S')
             x = 0;
         else
@@ -937,7 +862,7 @@ void print_Dep_With_Most_Defaulters(int count_Of_Defaulters_Department[5])
             idx = i;
         }
     }
-    printf("\nMost Defaulters From :->");
+    printf("\n\n\nMost Defaulters From :->");
     switch (idx)
     {
     case 0:
@@ -961,11 +886,11 @@ void print_Dep_With_Most_Defaulters(int count_Of_Defaulters_Department[5])
         break;
     }
 }
-void Question7util(Tree_Node *root, int count_department_wise[5])
+void printAllDefaulterStudentsutil(Tree_Node *root, int count_department_wise[5])
 {
     if (root)
     {
-        Question7util(root->left, count_department_wise);
+        printAllDefaulterStudentsutil(root->left, count_department_wise);
         if (root->ptr_To_Fee_Status_List_Node->fee == PENDING || root->ptr_To_Attendance_List_Node->attendance_Percent <= 75)
         {
             printf("\n%20s\t%s\t%s\tAttendance = %f\tFeeStatus = %d", root->data.name, root->data.dep, root->data.rollno,
@@ -973,15 +898,15 @@ void Question7util(Tree_Node *root, int count_department_wise[5])
             int dep_Index = findDepIndex(root->data.dep);
             count_department_wise[dep_Index]++;
         }
-        Question7util(root->right, count_department_wise);
+        printAllDefaulterStudentsutil(root->right, count_department_wise);
     }
 }
-void Question7(Tree_Node *root)
+void printAllDefaulterStudents(Tree_Node *root)
 {
-    printf("\nQuestion 7");
+    printf("\nQuestion 7\nDefaulter Students");
     int count_department_wise[5] = {0};
-    Question7util(root, count_department_wise);
-    printf("\n");
+    printAllDefaulterStudentsutil(root, count_department_wise);
+    printf("\n\n\n");
     for (int i = 0; i < SUBJECT_SIZE; i++)
     {
         printf("\tDEP_%d = %d", i, count_department_wise[i]);
@@ -989,46 +914,51 @@ void Question7(Tree_Node *root)
     print_Dep_With_Most_Defaulters(count_department_wise);
 }
 
-void Question8util(Tree_Node *root, char *key1, char *key2)
+void optimised_Inorder(Tree_Node *root, char *key1, char *key2)
 {
     if (root)
     {
+        // root < key1
         if (strcmp(root->data.rollno, key1) < 0)
         {
-            Question8util(root->right, key1, key2);
+            optimised_Inorder(root->right, key1, key2);
         }
+        // root== key1
         else if (strcmp(root->data.rollno, key1) == 0)
         {
             printf("\n%20s\t%s", root->data.name, root->data.rollno);
-            Question8util(root->right, key1, key2);
+            optimised_Inorder(root->right, key1, key2);
         }
+        // root> key1 && root< key2
         else if (strcmp(root->data.rollno, key1) > 0 && strcmp(root->data.rollno, key2) < 0)
         {
-            Question8util(root->left, key1, key2);
+            optimised_Inorder(root->left, key1, key2);
             printf("\n%20s\t%s", root->data.name, root->data.rollno);
-            Question8util(root->right, key1, key2);
+            optimised_Inorder(root->right, key1, key2);
         }
+        // root ==key2
         else if (strcmp(root->data.rollno, key2) == 0)
         {
-            Question8util(root->left, key1, key2);
+            optimised_Inorder(root->left, key1, key2);
             printf("\n%20s\t%s", root->data.name, root->data.rollno);
         }
+        // root>key2
         else
         {
-            Question8util(root->left, key1, key2);
+            optimised_Inorder(root->left, key1, key2);
         }
     }
 }
-void Question8(Tree_Node *root)
+void printAllStudentsWithinRange(Tree_Node *root)
 {
-    printf("\nQuestion 8");
+    printf("\nRange-search students based on the roll number.");
 
     char key1[ROLL_SIZE], key2[ROLL_SIZE];
-    printf("\nEnter starting roll no for question 8\n");
+    printf("\nEnter starting roll no for the operation\n");
     scanf("%s", key1);
-    printf("\nEnter ending roll no for question 8\n");
+    printf("\nEnter ending roll no for the operation\n");
     scanf("%s", key2);
 
     printf("\nstr1=%s str2=%s\n", key1, key2);
-    Question8util(root, key1, key2);
+    optimised_Inorder(root, key1, key2);
 }
